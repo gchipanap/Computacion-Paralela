@@ -26,3 +26,30 @@
 ==16719== LL miss rate:             0.1% (          0.0%     +           1.7%  )
 Violación de segmento (`core' generado)
 
+==17098== Cachegrind, a cache and branch-prediction profiler
+==17098== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==17098== Using Valgrind-3.19.0 and LibVEX; rerun with -h for copyright info
+==17098== Command: ./loop2
+==17098== 
+--17098-- warning: L3 cache found, using its data for the LL simulation.
+==17098== 
+==17098== Process terminating with default action of signal 11 (SIGSEGV)
+==17098==  Bad permissions for mapped region at address 0x2FC11000
+==17098==    at 0x1091A0: main (loop2.cpp:19)
+==17098== 
+==17098== I   refs:      24,988,020,192
+==17098== I1  misses:             1,721
+==17098== LLi misses:             1,682
+==17098== I1  miss rate:           0.00%
+==17098== LLi miss rate:           0.00%
+==17098== 
+==17098== D   refs:      10,376,408,128  (9,004,778,778 rd   + 1,371,629,350 wr)
+==17098== D1  misses:       392,601,832  (  368,837,722 rd   +    23,764,110 wr)
+==17098== LLd misses:        34,718,249  (   11,094,123 rd   +    23,624,126 wr)
+==17098== D1  miss rate:            3.8% (          4.1%     +           1.7%  )
+==17098== LLd miss rate:            0.3% (          0.1%     +           1.7%  )
+==17098== 
+==17098== LL refs:          392,603,553  (  368,839,443 rd   +    23,764,110 wr)
+==17098== LL misses:         34,719,931  (   11,095,805 rd   +    23,624,126 wr)
+==17098== LL miss rate:             0.1% (          0.0%     +           1.7%  )
+Violación de segmento (`core' generado)
