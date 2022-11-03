@@ -1,0 +1,157 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <omp.h>
+
+#ifdef DEBUG
+const int RMAX = 100;
+#else
+const int RMAX = 10000000;
+#endif
+
+double time1;
+double time2;
+int thread_count;
+
+
+void Get_args(int argc, char* argv[]);
+void Generate_list(int a[], int n);
+void Copy_list(int a[], int b[], int n);
+void Odd_even1(int a[], int n);
+void Odd_even2(int a[], int n);
+void test(int n, double time1, double time2);
+
+int main(int argc, char* argv[]) {
+  FILE *file; 
+  file = fopen("file.csv","w");
+  Get_args(argc, argv);
+
+  for(int j = 1; j < 15; j++)
+  {
+    test(j, time1, time2);
+    fprintf(file, "%i\t%f\t%f\n",pow(2,j), time1, time2);
+  }
+  
+  fclose ( file );
+
+   return 0;
+}
+
+void test(int j, double time1, double time2){
+  int* a;
+  int* b;
+  double start, finish;
+  double sum1 = 0;
+  double sum2 = 0;
+  int  n = pow(2,j);
+
+  for(int i = 0; i < 14; i++)
+  {
+      a = malloc(n*sizeof(int));
+      b = malloc(n*sizeof(int));
+      Generate_list(a, n);
+      Copy_list(a, b, n);
+      start = omp_get_wtime();
+      Odd_even1(a, n);
+      finish = omp_get_wtime();
+      sum1 += finish - start;
+      start = omp_get_wtime();
+      Odd_even2(b, n);
+      finish = omp_get_wtime();
+      sum2 += finish - start;
+  }
+  sum1 = sum1 /10;
+  sum2 = sum2 /10;
+
+  time1 = sum1;
+  time2 = sum2;
+  
+  printf("%i\t%f\t%f\n",n, time1, time2);
+  
+  free(a);
+  free(b);
+}
+
+
+void Get_args(int argc, char* argv[]) {
+   if (argc != 2 ) {
+      exit(0);
+   }
+   thread_count = strtol(argv[1], NULL, 10);
+} 
+
+void Generate_list(int a[], int n) {
+   int i;
+
+   srandom(1);
+   for (i = 0; i < n; i++)
+      a[i] = random() % RMAX;
+}
+
+void Copy_list(int a[], int b[], int n) {
+   int i;
+
+   for (i = 0; i < n; i++)
+      b[i] = a[i];
+}
+
+ void Odd_even1(int a[], int n) {
+   int phase, i, tmp;
+#  ifdef DEBUG
+   char title[100];
+#  endif
+
+   for (phase = 0; phase < n; phase++) {
+      if (phase % 2 == 0)
+#        pragma omp parallel for num_threads(thread_count) \
+            default(none) shared(a, n) private(i, tmp)
+         for (i = 1; i < n; i += 2) {
+            if (a[i-1] > a[i]) {
+               tmp = a[i-1];
+               a[i-1] = a[i];
+               a[i] = tmp;
+            }
+         }
+      else
+#        pragma omp parallel for num_threads(thread_count) \
+            default(none) shared(a, n) private(i, tmp)
+         for (i = 1; i < n-1; i += 2) {
+            if (a[i] > a[i+1]) {
+               tmp = a[i+1];
+               a[i+1] = a[i];
+               a[i] = tmp;
+            }
+         }
+#     ifdef DEBUG
+      sprintf(title, "After phase %d", phase);
+      Print_list(a, n, title);
+#     endif
+   }
+}
+
+void Odd_even2(int a[], int n) {
+   int phase, i, tmp;
+
+#  pragma omp parallel num_threads(thread_count) \
+      default(none) shared(a, n) private(i, tmp, phase)
+   for (phase = 0; phase < n; phase++) {
+      if (phase % 2 == 0)
+#        pragma omp for 
+         for (i = 1; i < n; i += 2) {
+            if (a[i-1] > a[i]) {
+               tmp = a[i-1];
+               a[i-1] = a[i];
+               a[i] = tmp;
+            }
+         }
+      else
+#        pragma omp for 
+         for (i = 1; i < n-1; i += 2) {
+            if (a[i] > a[i+1]) {
+               tmp = a[i+1];
+               a[i+1] = a[i];
+               a[i] = tmp;
+            }
+         }
+   }
+}
